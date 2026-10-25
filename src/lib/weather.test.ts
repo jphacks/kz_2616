@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildWeatherUrl, fetchWeather, parseWeatherResponse } from './weather';
 
 const VALID_RESPONSE = {
-  current: { time: '2026-10-24T17:30', temperature_2m: 15.3, weather_code: 55 },
+  current: { time: '2026-10-24T17:30', weather_code: 55 },
   daily: {
     time: ['2026-10-24', '2026-10-25'],
     sunrise: ['2026-10-24T05:55', '2026-10-25T05:56'],
@@ -15,7 +15,6 @@ describe('parseWeatherResponse', () => {
   it('Open-Meteo の応答を WeatherSnapshot に変換する（当日の日の出・日没を使う）', () => {
     expect(parseWeatherResponse(VALID_RESPONSE)).toEqual({
       weatherCode: 55,
-      temperatureC: 15.3,
       sunrise: '2026-10-24T05:55',
       sunset: '2026-10-24T16:55',
     });
@@ -29,7 +28,7 @@ describe('parseWeatherResponse', () => {
   it('数値であるべき項目が文字列なら例外を投げる', () => {
     const broken = {
       ...VALID_RESPONSE,
-      current: { temperature_2m: '15.3', weather_code: 55 },
+      current: { weather_code: '55' },
     };
     expect(() => parseWeatherResponse(broken)).toThrow();
   });
@@ -41,7 +40,7 @@ describe('buildWeatherUrl', () => {
     expect(url.origin + url.pathname).toBe('https://api.open-meteo.com/v1/forecast');
     expect(url.searchParams.get('latitude')).toBe('35.68');
     expect(url.searchParams.get('longitude')).toBe('139.69');
-    expect(url.searchParams.get('current')).toBe('temperature_2m,weather_code');
+    expect(url.searchParams.get('current')).toBe('weather_code');
     expect(url.searchParams.get('daily')).toBe('sunrise,sunset');
     expect(url.searchParams.get('timezone')).toBe('auto');
   });

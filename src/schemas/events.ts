@@ -23,10 +23,24 @@ export const FogEventSchema = z.object({
   timestamp: z.number().finite(),
 });
 
-export const SyncEventSchema = z.discriminatedUnion('type', [StrokeEventSchema, FogEventSchema]);
+/** 天気の値を知らせる。座標や気温は含めない（相手に送るのは天気の種類と日の出・日没だけ） */
+export const WeatherEventSchema = z.object({
+  type: z.literal('weather'),
+  weatherCode: z.number().int().min(0).max(99),
+  sunrise: z.string().max(40),
+  sunset: z.string().max(40),
+  timestamp: z.number().finite(),
+});
+
+export const SyncEventSchema = z.discriminatedUnion('type', [
+  StrokeEventSchema,
+  FogEventSchema,
+  WeatherEventSchema,
+]);
 
 export type StrokeEvent = z.infer<typeof StrokeEventSchema>;
 export type FogEvent = z.infer<typeof FogEventSchema>;
+export type WeatherEvent = z.infer<typeof WeatherEventSchema>;
 export type SyncEvent = z.infer<typeof SyncEventSchema>;
 
 /**

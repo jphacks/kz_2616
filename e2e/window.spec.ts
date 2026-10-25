@@ -4,7 +4,7 @@ const OPEN_METEO_PATTERN = /api\.open-meteo\.com/;
 
 /** Open-Meteo の応答を固定し、天気の表示を再現できるようにする */
 const WEATHER_RESPONSE = {
-  current: { temperature_2m: 15.3, weather_code: 3 },
+  current: { weather_code: 3 },
   daily: {
     sunrise: ['2026-10-24T05:55'],
     sunset: ['2026-10-24T16:55'],
