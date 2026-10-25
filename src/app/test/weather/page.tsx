@@ -128,11 +128,7 @@ export default function WeatherDebugPage() {
         </label>
       </div>
 
-      <div
-        className={styles.stage}
-        style={{ aspectRatio: CONFIG.WINDOW_ASPECT }}
-        {...inputHandlers}
-      >
+      <div className={styles.stage} {...inputHandlers}>
         <WeatherOverlay
           weatherCode={sample.code}
           sunrise={sunrise.iso}

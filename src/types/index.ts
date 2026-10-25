@@ -13,8 +13,16 @@ export interface Point {
 export interface WeatherSnapshot {
   /** WMO weather code */
   weatherCode: number;
-  /** 気温(℃) */
-  temperatureC: number;
+  /** 日の出時刻 (ISO 8601) */
+  sunrise: string;
+  /** 日没時刻 (ISO 8601) */
+  sunset: string;
+}
+
+/** 相手と共有する天気の値。座標や気温は送らない */
+export interface SharedWeather {
+  /** WMO weather code */
+  weatherCode: number;
   /** 日の出時刻 (ISO 8601) */
   sunrise: string;
   /** 日没時刻 (ISO 8601) */

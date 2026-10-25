@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { HaaDetector } from '@/components/HaaDetector/HaaDetector';
 import { SettingsMenu } from '@/components/SettingsMenu/SettingsMenu';
-import { TemperatureSlider } from '@/components/ui/TemperatureSlider';
 import { CONFIG } from '@/config';
 import { useCurrentCoordinates } from '@/hooks/useCurrentCoordinates';
 import { useDrawing } from '@/hooks/useDrawing';
@@ -17,7 +16,7 @@ import { toLocalPoints, toNormalizedPoints } from '@/lib/normalizePoints';
 import { startStrokeReplay } from '@/lib/replay';
 import { WEATHER_KIND_CODES } from '@/lib/weatherKind';
 import { useAppStore } from '@/stores/useAppStore';
-import type { Point } from '@/types';
+import type { Point, SharedWeather } from '@/types';
 
 import { DrawingLayer } from './DrawingLayer';
 import { FogLayer } from './FogLayer';
@@ -40,10 +39,10 @@ const SYNC_STATUS_TEXT = {
  * 相手の筆跡と息も、同じ窓に反映する（同期は環境変数が設定されているときだけ）。
  */
 export function WindowScene() {
-  const roomTemperatureC = useAppStore((state) => state.roomTemperatureC);
-  const setRoomTemperatureC = useAppStore((state) => state.setRoomTemperatureC);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
   const weatherOverride = useAppStore((state) => state.weatherOverride);
+  const remoteWeather = useAppStore((state) => state.remoteWeather);
+  const setRemoteWeather = useAppStore((state) => state.setRemoteWeather);
 
   const fog = useFogCanvas();
   const drawing = useDrawing();
@@ -55,6 +54,17 @@ export function WindowScene() {
   // デモ用に選んだ気象情報があれば、実際の天気より優先する
   const weatherCode =
     weatherOverride === 'actual' ? weather?.weatherCode : WEATHER_KIND_CODES[weatherOverride];
+
+  // 窓に映すのは相手の天気。相手からまだ受け取っていなければ、自分の天気を映す
+  const displayedWeather =
+    remoteWeather ??
+    (weatherCode !== undefined
+      ? {
+          weatherCode,
+          sunrise: weather?.sunrise,
+          sunset: weather?.sunset,
+        }
+      : null);
 
   // 水滴は曇りが濃い間だけ垂れる。操作ではないので、再曇りの待ち時間は動かさない
   // 窓の大きさ（端末ごとに違うため、送る点は割合にする）
@@ -106,10 +116,37 @@ export function WindowScene() {
     [fog.canvasRef, wipe],
   );
 
-  const { sendStroke, sendFog } = useSupabaseSync({
+  const handleRemoteWeather = useCallback(
+    (weather: SharedWeather) => setRemoteWeather(weather),
+    [setRemoteWeather],
+  );
+
+  const { sendStroke, sendFog, sendWeather } = useSupabaseSync({
     onRemoteStroke: handleRemoteStroke,
     onRemoteFog: handleBreath,
+    onRemoteWeather: handleRemoteWeather,
   });
+
+  // 相手と共有するのは、天気の種類と日の出・日没だけ（座標や気温は送らない）
+  const ownCode = weatherCode;
+  const ownSunrise = weather?.sunrise;
+  const ownSunset = weather?.sunset;
+  useEffect(() => {
+    if (connectionStatus !== 'connected' || ownCode === undefined) {
+      return;
+    }
+    if (ownSunrise === undefined || ownSunset === undefined) {
+      return;
+    }
+    sendWeather({ weatherCode: ownCode, sunrise: ownSunrise, sunset: ownSunset });
+  }, [connectionStatus, ownCode, ownSunrise, ownSunset, sendWeather]);
+
+  // 接続が切れたら、相手の天気は古いので捨てる
+  useEffect(() => {
+    if (connectionStatus !== 'connected') {
+      setRemoteWeather(null);
+    }
+  }, [connectionStatus, setRemoteWeather]);
 
   useEffect(() => {
     sendDropRef.current = (path) => {
@@ -164,18 +201,17 @@ export function WindowScene() {
         <SettingsMenu />
       </div>
       <WindowFrame glassProps={inputHandlers}>
-        {weatherCode !== undefined && (
+        {displayedWeather && (
           <WeatherOverlay
-            weatherCode={weatherCode}
-            sunrise={weather?.sunrise}
-            sunset={weather?.sunset}
+            weatherCode={displayedWeather.weatherCode}
+            sunrise={displayedWeather.sunrise}
+            sunset={displayedWeather.sunset}
           />
         )}
         <DrawingLayer canvasRef={drawing.canvasRef} />
         <FogLayer canvasRef={fog.canvasRef} />
       </WindowFrame>
       <div className={styles.controls}>
-        <TemperatureSlider value={roomTemperatureC} onChange={setRoomTemperatureC} />
         <HaaDetector onDetect={handleBreathDetected} />
         <p className={styles.sync}>{SYNC_STATUS_TEXT[connectionStatus]}</p>
       </div>

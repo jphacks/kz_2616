@@ -9,15 +9,17 @@ describe('useAppStore', () => {
     useAppStore.setState(initialState, true);
   });
 
-  it('初期値は室温20℃・未接続', () => {
-    const state = useAppStore.getState();
-    expect(state.roomTemperatureC).toBe(20);
-    expect(state.connectionStatus).toBe('disconnected');
+  it('初期値は未接続', () => {
+    expect(useAppStore.getState().connectionStatus).toBe('disconnected');
   });
 
-  it('setRoomTemperatureC で室温を更新できる', () => {
-    useAppStore.getState().setRoomTemperatureC(-3);
-    expect(useAppStore.getState().roomTemperatureC).toBe(-3);
+  it('相手の天気は未受信のときは null', () => {
+    expect(useAppStore.getState().remoteWeather).toBeNull();
+  });
+
+  it('setRemoteWeather で相手の天気を更新できる', () => {
+    useAppStore.getState().setRemoteWeather({ weatherCode: 61, sunrise: 'a', sunset: 'b' });
+    expect(useAppStore.getState().remoteWeather?.weatherCode).toBe(61);
   });
 
   it('setConnectionStatus で接続状態を更新できる', () => {

@@ -30,13 +30,6 @@ export const CONFIG = {
   LIGHTNING_MIN_MS: 5000,
   LIGHTNING_MAX_MS: 12000,
 
-  // 窓の縦横比
-  WINDOW_ASPECT: 4 / 3,
-
-  // 室温スライダーと窓枠の色が対応する範囲(℃)
-  ROOM_TEMPERATURE_MIN_C: -10,
-  ROOM_TEMPERATURE_MAX_C: 35,
-
   // 位置情報が取れないときに使う座標(東京)
   FALLBACK_LOCATION: { latitude: 35.68, longitude: 139.69 },
 } as const;

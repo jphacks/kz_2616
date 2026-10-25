@@ -1,4 +1,4 @@
-/* 天気の背景を確認するための画面。窓を 4:3 で中央に置く */
+/* 天気の背景を確認するための画面。実際の表示と同じく、画面いっぱいに窓を広げる */
 .page {
   min-height: 100vh;
   display: flex;
@@ -42,7 +42,8 @@
 
 .stage {
   position: relative;
-  width: min(100%, calc(70vh * 4 / 3));
+  width: 100%;
+  height: 75vh;
   overflow: hidden;
   touch-action: none;
   border-radius: 4px;

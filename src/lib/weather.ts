@@ -17,11 +17,10 @@ export function parseWeatherResponse(json: unknown): WeatherSnapshot {
     throw new Error('Open-Meteo の応答形式が不正です');
   }
 
-  const { temperature_2m, weather_code } = json.current;
+  const { weather_code } = json.current;
   const { sunrise, sunset } = json.daily;
 
   if (
-    typeof temperature_2m !== 'number' ||
     typeof weather_code !== 'number' ||
     !Array.isArray(sunrise) ||
     !Array.isArray(sunset) ||
@@ -33,7 +32,6 @@ export function parseWeatherResponse(json: unknown): WeatherSnapshot {
 
   return {
     weatherCode: weather_code,
-    temperatureC: temperature_2m,
     sunrise: sunrise[0],
     sunset: sunset[0],
   };
@@ -44,7 +42,7 @@ export function buildWeatherUrl({ latitude, longitude }: Coordinates): string {
   const url = new URL(OPEN_METEO_ENDPOINT);
   url.searchParams.set('latitude', String(latitude));
   url.searchParams.set('longitude', String(longitude));
-  url.searchParams.set('current', 'temperature_2m,weather_code');
+  url.searchParams.set('current', 'weather_code');
   url.searchParams.set('daily', 'sunrise,sunset');
   url.searchParams.set('timezone', 'auto');
   return url.toString();

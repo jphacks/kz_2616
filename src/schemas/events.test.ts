@@ -67,3 +67,27 @@ describe('太さ r の検証', () => {
     expect(parsed).toMatchObject({ points: [{ r: 6 }] });
   });
 });
+
+describe('天気イベントの検証', () => {
+  const valid = {
+    type: 'weather',
+    weatherCode: 61,
+    sunrise: '2026-10-25T06:12',
+    sunset: '2026-10-25T17:40',
+    timestamp: 1,
+  };
+
+  it('天気の値を受け取れる', () => {
+    expect(parseSyncEvent(valid)).toMatchObject({ type: 'weather', weatherCode: 61 });
+  });
+
+  it('座標が混ざっていても、天気の値だけを残す', () => {
+    const parsed = parseSyncEvent({ ...valid, latitude: 35.68, longitude: 139.69 });
+    expect(parsed).not.toHaveProperty('latitude');
+    expect(parsed).not.toHaveProperty('longitude');
+  });
+
+  it('天気コードが範囲外なら弾く', () => {
+    expect(parseSyncEvent({ ...valid, weatherCode: 150 })).toBeNull();
+  });
+});
