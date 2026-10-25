@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { HaaDetector } from '@/components/HaaDetector/HaaDetector';
 import { FullscreenButton } from '@/components/ui/FullscreenButton';
@@ -17,6 +17,7 @@ import { useWakeLock } from '@/hooks/useWakeLock';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { useWaterDrips } from '@/hooks/useWaterDrips';
 import { useWindowInput } from '@/hooks/useWindowInput';
+import { toDemoDate } from '@/lib/demoTime';
 import { toLocalPoints, toNormalizedPoints } from '@/lib/normalizePoints';
 import { startStrokeReplay } from '@/lib/replay';
 import { WEATHER_KIND_CODES } from '@/lib/weatherKind';
@@ -51,6 +52,9 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
   const weatherOverride = useAppStore((state) => state.weatherOverride);
   const remoteWeather = useAppStore((state) => state.remoteWeather);
   const setRemoteWeather = useAppStore((state) => state.setRemoteWeather);
+  const fogFadeOutMs = useAppStore((state) => state.fogFadeOutMs);
+  const dripActiveMs = useAppStore((state) => state.dripActiveMs);
+  const demoTime = useAppStore((state) => state.demoTime);
 
   const fog = useFogCanvas();
   const drawing = useDrawing();
@@ -71,6 +75,10 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
       ? { weatherCode: weather.weatherCode, sunrise: weather.sunrise, sunset: weather.sunset }
       : null);
 
+  // 撮影用の時刻を指定したときは、その時刻を背景に使う。日の出・日没は実際の値を使わず、
+  // 6:00 と 18:00 とみなす（指定した時刻が昼・夕方・夜のどれでも映せるようにするため）
+  const demoNow = useMemo(() => (demoTime ? toDemoDate(new Date(), demoTime) : null), [demoTime]);
+
   // 退室すると入室画面に戻る（同期は窓の表示と一緒に止まる）
   const handleLeave = () => setRoomCode(null);
 
@@ -85,12 +93,12 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
   const drips = useWaterDrips(wipe, getGlassSize, (path) => sendDropRef.current(path));
 
   // 息を検出したら、手書きを消して、少しの時間をかけて曇らせる。
-  // 曇りきったら、そこから 1 分かけて徐々に透明に戻す。その間は水滴も垂れる
+  // 曇りきったら、設定の時間をかけて徐々に透明に戻す。その間は水滴も垂れる
   const handleBreath = useCallback(() => {
     clear();
-    fadeIn(CONFIG.BREATH_FOG_FADE_MS, () => fadeOut(CONFIG.BREATH_FOG_FADE_OUT_MS));
-    drips.start(CONFIG.DRIP_ACTIVE_MS);
-  }, [clear, fadeIn, fadeOut, drips]);
+    fadeIn(CONFIG.BREATH_FOG_FADE_MS, () => fadeOut(fogFadeOutMs));
+    drips.start(dripActiveMs);
+  }, [clear, fadeIn, fadeOut, drips, fogFadeOutMs, dripActiveMs]);
 
   // 相手の再生中の画を、止める時に備えて覚えておく
   const replaysRef = useRef(new Set<() => void>());
@@ -228,8 +236,9 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
         {displayedWeather && (
           <WeatherOverlay
             weatherCode={displayedWeather.weatherCode}
-            sunrise={displayedWeather.sunrise}
-            sunset={displayedWeather.sunset}
+            sunrise={demoNow ? undefined : displayedWeather.sunrise}
+            sunset={demoNow ? undefined : displayedWeather.sunset}
+            now={demoNow ?? undefined}
           />
         )}
         <DrawingLayer canvasRef={drawing.canvasRef} />

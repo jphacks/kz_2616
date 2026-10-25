@@ -38,3 +38,18 @@
   min-height: 32px;
   font: inherit;
 }
+
+.field input {
+  min-height: 32px;
+  font: inherit;
+}
+
+.reset {
+  min-height: 32px;
+  border: 1px solid #8fa0ab;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
