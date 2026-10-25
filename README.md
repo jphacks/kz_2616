@@ -1,7 +1,10 @@
 # Connect Window
 
-  [![Connect Window デモ動画](https://jphacks.com/wp-content/uploads/2026/07/IMG
+  [Connect Window デモ動画](https://jphacks.com/wp-content/uploads/2026/07/IMG
   _5316.png)](https://www.youtube.com/watch?v=piaNsc6ilBI)
+
+  ## Access URL
+[Connect Window](https://smart-window-mu.vercel.app/)
 
   ## 製品概要
   Connect Windowは、離れて暮らす家族の天気を窓のような画面に映し、手書きメッセー
