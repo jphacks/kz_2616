@@ -39,7 +39,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | 曇り・手書き     | Canvas 2D + perfect-freehand         | 曇りの拭き取り、滑らかな筆跡 |
 | 入力             | Pointer Events                       | 指・マウス・ペン対応         |
 | 「はー」検出     | Web Audio API (AnalyserNode)         | 音量・スペクトルで判定       |
-| 常時点灯         | Screen Wake Lock API                 | 画面消灯防止（予定）         |
+| 常時点灯         | Screen Wake Lock API                 | 画面消灯防止                 |
 | 全画面           | Fullscreen API                       | 窓を画面いっぱいに（予定）   |
 | 状態管理         | Zustand                              | 設定値と接続状態、相手の天気 |
 | ホスティング     | Vercel                               | HTTPS 必須（予定）           |
@@ -244,9 +244,9 @@ npm run build        # ビルド
 
 ### Phase C: 仕上げ・発表準備
 
-| ID  | タスク                                                 | 完了条件                     |
-| --- | ------------------------------------------------------ | ---------------------------- |
-| C-1 | 画面の常時点灯（Screen Wake Lock API、失敗しても動く） | 操作なしで画面が消えない     |
-| C-2 | 全画面表示（Fullscreen API、ボタン）                   | ボタンで全画面になる         |
-| C-3 | Vercel にデプロイ（HTTPS、環境変数）                   | 公開 URL で 2 台が接続できる |
-| C-4 | デモ用の設定（会場向けの待ち時間・水滴）               | 会場の設定で動く             |
+| ID     | タスク                                                 | 完了条件                     |
+| ------ | ------------------------------------------------------ | ---------------------------- |
+| C-1 ✅ | 画面の常時点灯（Screen Wake Lock API、失敗しても動く） | 操作なしで画面が消えない     |
+| C-2    | 全画面表示（Fullscreen API、ボタン）                   | ボタンで全画面になる         |
+| C-3    | Vercel にデプロイ（HTTPS、環境変数）                   | 公開 URL で 2 台が接続できる |
+| C-4    | デモ用の設定（会場向けの待ち時間・水滴）               | 会場の設定で動く             |

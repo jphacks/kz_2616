@@ -212,3 +212,27 @@ test('窓に入ると同期の状態が出て、退室すると入室画面に�
   await expect(page.getByLabel('合言葉')).toBeVisible();
   await expect(page.locator('p[role="status"][data-status]')).toHaveText('同期していません');
 });
+
+test.describe('画面の常時点灯', () => {
+  test.use({ permissions: ['screen-wake-lock'] });
+
+  test('許可されていると、窓を開いている間は画面の点灯を保つ', async ({ page }) => {
+    // 窓が頼んだ点灯（番兵）の状態を、読めるように記録しておく
+    await page.addInitScript(() => {
+      const request = navigator.wakeLock.request.bind(navigator.wakeLock);
+      Object.assign(window, { __held: false });
+      navigator.wakeLock.request = async (type) => {
+        const sentinel = await request(type);
+        (window as unknown as { __held: boolean }).__held = !sentinel.released;
+        return sentinel;
+      };
+    });
+    await page.goto('/');
+    await page.getByLabel('合言葉').fill(`点灯-${Math.random().toString(36).slice(2)}`);
+    await page.getByRole('button', { name: '入室' }).click();
+
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __held: boolean }).__held))
+      .toBe(true);
+  });
+});
