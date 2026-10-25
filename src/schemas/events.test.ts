@@ -36,3 +36,34 @@ describe('parseSyncEvent', () => {
     ).toBeNull();
   });
 });
+
+describe('時刻 t の検証', () => {
+  it('点の t は任意で、あれば数値として通す', () => {
+    const parsed = parseSyncEvent({
+      type: 'stroke',
+      points: [{ x: 0.1, y: 0.2, t: 40 }],
+      timestamp: 1,
+    });
+    expect(parsed).toMatchObject({ points: [{ t: 40 }] });
+  });
+
+  it('t が負の値なら弾く', () => {
+    const parsed = parseSyncEvent({
+      type: 'stroke',
+      points: [{ x: 0.1, y: 0.2, t: -1 }],
+      timestamp: 1,
+    });
+    expect(parsed).toBeNull();
+  });
+});
+
+describe('太さ r の検証', () => {
+  it('受信した点の太さ r を残す（相手側で水滴を細く描くため）', () => {
+    const parsed = parseSyncEvent({
+      type: 'stroke',
+      points: [{ x: 0.1, y: 0.2, t: 40, r: 6 }],
+      timestamp: 1,
+    });
+    expect(parsed).toMatchObject({ points: [{ r: 6 }] });
+  });
+});

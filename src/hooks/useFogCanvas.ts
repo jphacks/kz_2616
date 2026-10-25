@@ -1,17 +1,29 @@
 import { type RefObject, useCallback, useEffect, useRef } from 'react';
 
 import { copyCanvas, fitCanvasToDisplay } from '@/lib/canvas';
-import { FOG_FILL_STYLE, interpolateStamps, WIPE_RADIUS } from '@/lib/fog';
+import { FOG_FILL_STYLE, interpolateStamps, wipeRadiusFor } from '@/lib/fog';
+import { createFogPattern } from '@/lib/fogTexture';
 import type { Point } from '@/types';
 
+/** 曇りの色を塗る。模様が作れなければ単色で塗る */
+function fillWithFog(context: CanvasRenderingContext2D, width: number, height: number): void {
+  context.fillStyle = createFogPattern(context) ?? FOG_FILL_STYLE;
+  context.fillRect(0, 0, width, height);
+}
+
 /** 指の跡（点列）を、拭き取りとして描く */
-function stampWipe(context: CanvasRenderingContext2D, from: Point | null, to: Point): void {
+function stampWipe(
+  context: CanvasRenderingContext2D,
+  from: Point | null,
+  to: Point,
+  radius: number,
+): void {
   context.save();
   context.globalCompositeOperation = 'destination-out';
   context.fillStyle = '#000';
-  for (const stamp of interpolateStamps(from, to, WIPE_RADIUS / 2)) {
+  for (const stamp of interpolateStamps(from, to, radius / 2)) {
     context.beginPath();
-    context.arc(stamp.x, stamp.y, WIPE_RADIUS, 0, Math.PI * 2);
+    context.arc(stamp.x, stamp.y, radius, 0, Math.PI * 2);
     context.fill();
   }
   context.restore();
@@ -24,8 +36,7 @@ function createFogCanvas(width: number, height: number): HTMLCanvasElement {
   canvas.height = height;
   const context = canvas.getContext('2d');
   if (context) {
-    context.fillStyle = FOG_FILL_STYLE;
-    context.fillRect(0, 0, width, height);
+    fillWithFog(context, width, height);
   }
   return canvas;
 }
@@ -38,8 +49,11 @@ export interface UseFogCanvasResult {
   fadeIn: (durationMs: number, onComplete?: () => void) => void;
   /** durationMs かけて、徐々に曇りを消して透明に戻す */
   fadeOut: (durationMs: number) => void;
-  /** from から to までを拭き取る。from が null なら to の点だけを拭く */
-  wipe: (from: Point | null, to: Point) => void;
+  /**
+   * from から to までを拭き取る。from が null なら to の点だけを拭く。
+   * radius を省くと、点に付いた太さか、なぞる速さに合わせた太さで拭く。
+   */
+  wipe: (from: Point | null, to: Point, radius?: number) => void;
 }
 
 /**
@@ -61,8 +75,7 @@ export function useFogCanvas(): UseFogCanvasResult {
 
     context.save();
     context.globalCompositeOperation = 'source-over';
-    context.fillStyle = FOG_FILL_STYLE;
-    context.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    fillWithFog(context, canvas.clientWidth, canvas.clientHeight);
     context.restore();
   }, []);
 
@@ -158,14 +171,16 @@ export function useFogCanvas(): UseFogCanvasResult {
   // 画面を離れたら、徐々に曇らせる処理を止める
   useEffect(() => cancelFade, [cancelFade]);
 
-  const wipe = useCallback((from: Point | null, to: Point) => {
+  const wipe = useCallback((from: Point | null, to: Point, radius?: number) => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) {
       return;
     }
 
-    stampWipe(context, from, to);
+    // 太さは、呼び出し側の指定 → 点に付いた太さ → なぞる速さ の順に決める
+    const size = radius ?? to.r ?? wipeRadiusFor(from, to);
+    stampWipe(context, from, to, size);
 
     // フェードアウト中は、元になる曇りにも同じ跡を書き足す（跡が消えないように）。
     // 元の画像は端末の画素数のままなので、CSS ピクセルの座標を拡大率（dpr）で合わせてから描く
@@ -175,7 +190,7 @@ export function useFogCanvas(): UseFogCanvasResult {
       const dpr = window.devicePixelRatio || 1;
       sourceContext.save();
       sourceContext.setTransform(dpr, 0, 0, dpr, 0, 0);
-      stampWipe(sourceContext, from, to);
+      stampWipe(sourceContext, from, to, size);
       sourceContext.restore();
     }
   }, []);
@@ -206,8 +221,7 @@ export function useFogCanvas(): UseFogCanvasResult {
       // 全面を曇らせてから、前の状態で曇りが残っていた部分だけを残す（拭いた跡は透明のまま）
       context.save();
       context.setTransform(1, 0, 0, 1, 0, 0);
-      context.fillStyle = FOG_FILL_STYLE;
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      fillWithFog(context, canvas.width, canvas.height);
       context.globalCompositeOperation = 'destination-in';
       context.drawImage(snapshot, 0, 0, canvas.width, canvas.height);
       context.restore();

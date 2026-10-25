@@ -1,9 +1,36 @@
+/* 天気の背景。窓の一番下に置き、曇りと手書きはこの上に重ねる */
 .overlay {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.overlay canvas {
+/* 空の色は CSS のグラデーションで敷く。天気が変わるときは、新旧を重ねてフェードする */
+.sky {
+  position: absolute;
+  inset: 0;
+  animation-name: skyFadeIn;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  /* 窓枠の内側の影を、背景の上にも残す */
+  box-shadow: inset 0 0 8vmin var(--frame-color);
+}
+
+.canvasHost {
+  position: absolute;
+  inset: 0;
+}
+
+.canvasHost canvas {
   display: block;
+}
+
+@keyframes skyFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

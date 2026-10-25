@@ -1,0 +1,59 @@
+/* 天気の背景を確認するための画面。窓を 4:3 で中央に置く */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #222;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sample {
+  padding: 6px 10px;
+  border: 1px solid #888;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sampleActive {
+  background: #fff;
+  color: #000;
+}
+
+.stage {
+  position: relative;
+  width: min(100%, calc(70vh * 4 / 3));
+  overflow: hidden;
+  touch-action: none;
+  border-radius: 4px;
+}
+
+/* 曇りは表示を切り替えるだけなので、レイアウトは保ったまま隠す */
+.hidden {
+  visibility: hidden;
+}
+
+.fog {
+  position: absolute;
+  inset: 0;
+}

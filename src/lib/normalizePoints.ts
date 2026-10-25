@@ -12,6 +12,8 @@ export function toNormalizedPoints(points: Point[], width: number, height: numbe
     x: point.x / width,
     y: point.y / height,
     pressure: point.pressure,
+    t: point.t,
+    r: point.r,
   }));
 }
 
@@ -21,5 +23,7 @@ export function toLocalPoints(points: Point[], width: number, height: number): P
     x: point.x * width,
     y: point.y * height,
     pressure: point.pressure,
+    t: point.t,
+    r: point.r,
   }));
 }
