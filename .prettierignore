@@ -1,0 +1,9 @@
+.next
+node_modules
+package-lock.json
+next-env.d.ts
+CLAUDE.md
+test-results
+playwright-report
+blob-report
+.next-e2e

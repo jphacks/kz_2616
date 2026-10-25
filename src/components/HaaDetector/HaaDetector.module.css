@@ -1,0 +1,28 @@
+.detector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #8fa0ab;
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.status {
+  margin: 0;
+  font-size: 13px;
+}
+
+.levels {
+  margin: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
