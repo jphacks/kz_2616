@@ -1,7 +1,8 @@
 # Connect Window
+[![C_window](public/icon.png)](https://drive.google.com/file/d/1joSvvhlcYKNLk_WYZXPdTbBS7HFwXKxb/view?usp=drive_link)
 
-  [Connect Window デモ動画](https://jphacks.com/wp-content/uploads/2026/07/IMG
-  _5316.png)](https://www.youtube.com/watch?v=piaNsc6ilBI)
+Video Link:
+https://drive.google.com/file/d/1joSvvhlcYKNLk_WYZXPdTbBS7HFwXKxb/view?usp=sharing
 
   ## Access URL
 [Connect Window](https://smart-window-mu.vercel.app/)
