@@ -12,6 +12,7 @@ import { useFogCanvas } from '@/hooks/useFogCanvas';
 import { useSupabaseSync } from '@/hooks/useSupabaseSync';
 import { syncChannelName } from '@/lib/supabase';
 import { useWeather } from '@/hooks/useWeather';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { useWaterDrips } from '@/hooks/useWaterDrips';
 import { useWindowInput } from '@/hooks/useWindowInput';
 import { toLocalPoints, toNormalizedPoints } from '@/lib/normalizePoints';
@@ -38,6 +39,9 @@ interface WindowSceneProps {
  * 相手の筆跡と息も、同じ窓に反映する（同期は環境変数が設定されているときだけ）。
  */
 export function WindowScene({ roomCode }: WindowSceneProps) {
+  // 窓を開いている間は、画面が消えないようにする（失敗しても窓は動く）
+  useWakeLock();
+
   const connectionStatus = useAppStore((state) => state.connectionStatus);
   const setRoomCode = useAppStore((state) => state.setRoomCode);
   const weatherOverride = useAppStore((state) => state.weatherOverride);
