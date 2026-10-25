@@ -20,3 +20,11 @@ describe('normalizePoints', () => {
     expect(toNormalizedPoints([{ x: 1, y: 1 }], 0, 0)).toEqual([]);
   });
 });
+
+describe('時刻 t の扱い', () => {
+  it('割合への変換と、戻す変換の両方で t を保つ', () => {
+    const normalized = toNormalizedPoints([{ x: 100, y: 50, t: 120 }], 400, 200);
+    expect(normalized[0].t).toBe(120);
+    expect(toLocalPoints(normalized, 400, 200)[0].t).toBe(120);
+  });
+});

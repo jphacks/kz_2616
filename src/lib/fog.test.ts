@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { interpolateStamps } from './fog';
+import { interpolateStamps, WIPE_RADIUS, wipeRadiusFor } from './fog';
 
 describe('interpolateStamps', () => {
   it('直前の点がなければ今の点だけを返す', () => {
@@ -27,5 +27,20 @@ describe('interpolateStamps', () => {
 
     expect(stamps).toHaveLength(5);
     expect(last).toEqual({ x: 30, y: 40 });
+  });
+});
+
+describe('wipeRadiusFor', () => {
+  it('時刻がなければ基本の半径を使う', () => {
+    expect(wipeRadiusFor({ x: 0, y: 0 }, { x: 10, y: 0 })).toBe(WIPE_RADIUS);
+  });
+
+  it('ゆっくり拭くほど太く、速く拭くほど細くなる', () => {
+    const slow = wipeRadiusFor({ x: 0, y: 0, t: 0 }, { x: 1, y: 0, t: 100 });
+    const fast = wipeRadiusFor({ x: 0, y: 0, t: 0 }, { x: 200, y: 0, t: 100 });
+
+    expect(slow).toBeGreaterThan(WIPE_RADIUS);
+    expect(fast).toBeLessThan(WIPE_RADIUS);
+    expect(slow).toBeGreaterThan(fast);
   });
 });

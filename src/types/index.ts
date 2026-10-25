@@ -3,6 +3,10 @@ export interface Point {
   x: number;
   y: number;
   pressure?: number;
+  /** 1 画の始まりからの時間(ms)。相手の線を書いた速さで再生するために使う */
+  t?: number;
+  /** 拭く半径(px)。省略時はなぞる速さから決める（水滴など、太さを決めて送る場合に使う） */
+  r?: number;
 }
 
 /** Open-Meteo から取得する天気情報 */

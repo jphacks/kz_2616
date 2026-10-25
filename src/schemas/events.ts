@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
-/** 1 点（座標は窓の大きさに対する割合 0〜1。端末の画面の大きさに依らないため。筆圧はペンのみ） */
+/** 1 点（座標は窓の大きさに対する割合 0〜1。端末の画面の大きさに依らないため。筆圧はペンのみ。t は画の始まりからの ms） */
 const PointSchema = z.object({
   x: z.number().finite(),
   y: z.number().finite(),
   pressure: z.number().finite().optional(),
+  t: z.number().finite().min(0).optional(),
+  r: z.number().finite().min(0).max(100).optional(),
 });
 
 /** 1 画分の筆跡。受信側はこの点をなぞって曇りを拭く */

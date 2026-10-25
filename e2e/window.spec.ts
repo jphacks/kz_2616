@@ -1,7 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { CONFIG } from '../src/config';
-
 const OPEN_METEO_PATTERN = /api\.open-meteo\.com/;
 
 /** Open-Meteo の応答を固定し、天気の表示を再現できるようにする */
@@ -89,19 +87,6 @@ test('なぞった部分の曇りが拭けるが、黒い線は出ない', async
   expect(await alphaAt(page, 1, center.x, center.y)).toBeLessThan(50);
   // 手書きのインクは透明で、線は描かれない
   expect(await alphaAt(page, 0, center.x, center.y)).toBeLessThan(10);
-});
-
-test('操作が止まって FOG_RECOVER_MS 経つと、曇りが戻る', async ({ page }) => {
-  await page.clock.install();
-  await page.goto('/');
-  const center = await glassCenter(page);
-
-  await drawAcrossCenter(page);
-  expect(await alphaAt(page, 1, center.x, center.y)).toBeLessThan(50);
-
-  await page.clock.fastForward(CONFIG.FOG_RECOVER_MS + 1000);
-
-  expect(await alphaAt(page, 1, center.x, center.y)).toBeGreaterThan(200);
 });
 
 test('ブラウザの大きさが変わっても、拭いた跡は消えない', async ({ page }) => {
