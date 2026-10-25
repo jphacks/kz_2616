@@ -1,0 +1,34 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa5ad;
+}
+
+/* 接続中は点が脈打ち、同期中は緑、失敗は赤で示す */
+.connecting {
+  background: #e0a526;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.connected {
+  background: #3a9d5d;
+}
+
+.error {
+  background: #b3261e;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}

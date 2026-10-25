@@ -6,7 +6,7 @@
 
 ## 画面
 
-- `page.tsx`: 窓の画面（`WindowScene` を表示）。入室画面は Phase B で追加する
+- `page.tsx`: 入口。`components/Room/RoomGate` が、合言葉を入力するまで入室画面、入力後は窓を表示する
 - `test/weather/page.tsx`: 天気の背景を確認するための開発用の画面（本番で使わない）
 
 ## 注意

@@ -16,10 +16,15 @@
   background: rgb(255 255 255 / 0.7);
 }
 
-.sync {
-  margin: 4px 0 0;
-  text-align: center;
+/* 退室は、控えめな文字のボタンにする */
+.leave {
+  margin-top: 4px;
+  border: none;
+  background: none;
+  font: inherit;
   font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* 設定メニューは左上に置く。窓の入力とは重ならない */

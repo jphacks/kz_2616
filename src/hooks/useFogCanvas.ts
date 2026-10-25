@@ -63,7 +63,7 @@ export interface UseFogCanvasResult {
 export function useFogCanvas(): UseFogCanvasResult {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fadeFrameRef = useRef<number | null>(null);
-  // フェードアウトの元になる曇りの状態（フェードアウト中の拭き跡もここに書き足す）
+  // フェードの元になる曇りの状態。フェードの間に拭いた跡もここに書き足す（上から描き直されて消えないように）
   const fadeSourceRef = useRef<HTMLCanvasElement | null>(null);
 
   const fillFog = useCallback(() => {
@@ -98,6 +98,7 @@ export function useFogCanvas(): UseFogCanvasResult {
       cancelFade();
       // 今の状態と、全面が曇った状態を用意し、時間に応じて混ぜる
       const current = copyCanvas(canvas);
+      fadeSourceRef.current = current;
       const fullFog = createFogCanvas(canvas.width, canvas.height);
       const startMs = performance.now();
 
@@ -109,7 +110,7 @@ export function useFogCanvas(): UseFogCanvasResult {
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.globalAlpha = 1 - progress;
-        context.drawImage(current, 0, 0);
+        context.drawImage(fadeSourceRef.current ?? current, 0, 0);
         // 足し合わせると、透明度は「今の状態」と「全面の曇り」の割合で決まる。途中で濃くならない
         context.globalCompositeOperation = 'lighter';
         context.globalAlpha = progress;
@@ -120,6 +121,7 @@ export function useFogCanvas(): UseFogCanvasResult {
           fadeFrameRef.current = requestAnimationFrame(step);
         } else {
           fadeFrameRef.current = null;
+          fadeSourceRef.current = null;
           onComplete?.();
         }
       };

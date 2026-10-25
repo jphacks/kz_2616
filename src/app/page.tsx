@@ -1,5 +1,5 @@
-import { WindowScene } from '@/components/Window/WindowScene';
+import { RoomGate } from '@/components/Room/RoomGate';
 
 export default function Home() {
-  return <WindowScene />;
+  return <RoomGate />;
 }

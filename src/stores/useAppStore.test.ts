@@ -13,6 +13,15 @@ describe('useAppStore', () => {
     expect(useAppStore.getState().connectionStatus).toBe('disconnected');
   });
 
+  it('初期状態は未入室（合言葉は null）', () => {
+    expect(useAppStore.getState().roomCode).toBeNull();
+  });
+
+  it('setRoomCode で合言葉を入れると入室状態になる', () => {
+    useAppStore.getState().setRoomCode('はなこ');
+    expect(useAppStore.getState().roomCode).toBe('はなこ');
+  });
+
   it('相手の天気は未受信のときは null', () => {
     expect(useAppStore.getState().remoteWeather).toBeNull();
   });
