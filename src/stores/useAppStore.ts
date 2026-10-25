@@ -7,6 +7,8 @@ export interface AppState {
   connectionStatus: ConnectionStatus;
   /** 入室に使った合言葉。未入室なら null */
   roomCode: string | null;
+  /** 入室できなかった理由（満員など）。入室画面に出す */
+  joinError: string | null;
   /** 相手から受け取った天気。未受信なら null */
   remoteWeather: SharedWeather | null;
   /** デモ用の気象情報（'actual' は実際の天気） */
@@ -16,6 +18,7 @@ export interface AppState {
   setConnectionStatus: (status: ConnectionStatus) => void;
   setRemoteWeather: (weather: SharedWeather | null) => void;
   setRoomCode: (roomCode: string | null) => void;
+  setJoinError: (message: string | null) => void;
   setWeatherOverride: (weather: WeatherOverride) => void;
   setHaaSensitivity: (sensitivity: HaaSensitivity) => void;
 }
@@ -23,12 +26,14 @@ export interface AppState {
 export const useAppStore = create<AppState>()((set) => ({
   connectionStatus: 'disconnected',
   roomCode: null,
+  joinError: null,
   remoteWeather: null,
   weatherOverride: 'actual',
   haaSensitivity: 'normal',
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setRemoteWeather: (weather) => set({ remoteWeather: weather }),
-  setRoomCode: (roomCode) => set({ roomCode }),
+  setRoomCode: (roomCode) => set({ roomCode, joinError: null }),
+  setJoinError: (message) => set({ joinError: message }),
   setWeatherOverride: (weather) => set({ weatherOverride: weather }),
   setHaaSensitivity: (sensitivity) => set({ haaSensitivity: sensitivity }),
 }));

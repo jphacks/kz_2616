@@ -6,14 +6,30 @@
   margin-top: 12px;
 }
 
-.button {
-  min-height: 44px;
-  padding: 0 16px;
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+/* 丸いアイコンのボタン。マイクがオンのときは色を変える */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 1px solid #8fa0ab;
   border-radius: 999px;
   background: #fff;
-  font: inherit;
+  color: #000;
   cursor: pointer;
+}
+
+.active {
+  background: #5b7483;
+  border-color: #5b7483;
+  color: #fff;
 }
 
 .status {

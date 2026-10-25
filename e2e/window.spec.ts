@@ -11,11 +11,13 @@ const WEATHER_RESPONSE = {
   },
 };
 
-/** 入室画面で合言葉を入力し、窓に入る */
-async function enterRoom(page: Page): Promise<void> {
+/** 入室画面で合言葉を入力し、窓に入る（合言葉を省くと、テストごとに別の合言葉を使う） */
+async function enterRoom(page: Page, passphrase?: string): Promise<void> {
   await page.goto('/');
   // テストごとに別の合言葉にして、並列に動くテスト同士が同じチャンネルに入らないようにする
-  await page.getByLabel('合言葉').fill(`テスト-${Math.random().toString(36).slice(2)}`);
+  await page
+    .getByLabel('合言葉')
+    .fill(passphrase ?? `テスト-${Math.random().toString(36).slice(2)}`);
   await page.getByRole('button', { name: '入室' }).click();
   // 曇りの Canvas の大きさが決まるまで待つ（決まる前に描くと、拭き跡が付かないことがある）
   await page.waitForFunction(
@@ -180,16 +182,29 @@ test('「はー」の息を検出すると、拭いた跡の上に曇りが戻�
     .toBeGreaterThan(200);
 });
 
-test('設定で気象情報を変えると、天気の背景の色が切り替わる', async ({ page }) => {
-  await enterRoom(page);
-  // 天気の背景（CSS の空）の色を読む
-  const sky = page.locator('div[class*="__sky"]').first();
-  await expect(sky).toHaveAttribute('style', /background/);
-  const before = await sky.getAttribute('style');
+test('設定で相手の窓の気象情報を変えると、相手の窓の天気だけが変わる', async ({ page }) => {
+  const passphrase = `天気-${Math.random().toString(36).slice(2)}`;
+  // 同じ合言葉で、2 つの窓を開く（片方が設定を変え、もう片方の窓が変わるかを見る）
+  await enterRoom(page, passphrase);
+  const partner = await page.context().newPage();
+  await enterRoom(partner, passphrase);
+
+  // 一番新しい空の層を読む（切り替え中は古い層と新しい層が重なるため）
+  const skyOf = (target: Page) => target.locator('div[class*="__sky"]').last();
+  await expect(skyOf(partner)).toHaveAttribute('style', /background/);
+  // 接続して天気が届き、表示が落ち着くのを待つ
+  await page.waitForTimeout(3000);
+  const ownBefore = await skyOf(page).getAttribute('style');
+  const partnerBefore = await skyOf(partner).getAttribute('style');
 
   await page.getByRole('button', { name: /設定/ }).click();
-  await page.getByLabel('気象情報').selectOption('rain');
-  await expect.poll(async () => sky.getAttribute('style')).not.toBe(before);
+  await page.getByLabel('相手の窓の気象情報').selectOption('rain');
+
+  // 相手の窓は、選んだ天気に変わる
+  await expect.poll(async () => skyOf(partner).getAttribute('style')).not.toBe(partnerBefore);
+  // 自分の窓は、設定の影響を受けない（相手から届いた天気のまま）
+  await page.waitForTimeout(1500);
+  expect(await skyOf(page).getAttribute('style')).toBe(ownBefore);
 });
 
 test('合言葉が空のままでは、窓に入れない', async ({ page }) => {
@@ -235,4 +250,44 @@ test.describe('画面の常時点灯', () => {
       .poll(() => page.evaluate(() => (window as unknown as { __held: boolean }).__held))
       .toBe(true);
   });
+});
+
+test('全画面ボタンで全画面になり、もう一度押すと戻る', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('合言葉').fill(`全画面-${Math.random().toString(36).slice(2)}`);
+  await page.getByRole('button', { name: '入室' }).click();
+
+  const fullscreenButton = page.getByRole('button', { name: '全画面', exact: true });
+  await fullscreenButton.click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true);
+  await expect(page.getByRole('button', { name: '全画面を終える' })).toBeVisible();
+
+  await page.getByRole('button', { name: '全画面を終える' }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false);
+});
+
+test('デバッグ用の結露ボタン（雪記号）で、窓が曇る', async ({ page }) => {
+  await enterRoom(page);
+  const center = await glassCenter(page);
+  expect(await alphaAt(page, 'FogLayer', center.x, center.y)).toBeLessThan(10);
+
+  await page.getByRole('button', { name: '結露を発生させる（デバッグ）' }).click();
+
+  await expect
+    .poll(() => alphaAt(page, 'FogLayer', center.x, center.y), { timeout: 5000 })
+    .toBeGreaterThan(200);
+});
+
+test('同じ合言葉で 3 人目が入ろうとすると、満員として入室画面に戻る', async ({ page }) => {
+  const passphrase = `定員-${Math.random().toString(36).slice(2)}`;
+  await enterRoom(page, passphrase);
+  const second = await page.context().newPage();
+  await enterRoom(second, passphrase);
+  const third = await page.context().newPage();
+  await third.goto('/');
+  await third.getByLabel('合言葉').fill(passphrase);
+  await third.getByRole('button', { name: '入室' }).click();
+
+  await expect(third.locator('p[role="alert"]')).toHaveText(/使用中です/, { timeout: 20000 });
+  await expect(third.getByLabel('合言葉')).toBeVisible();
 });

@@ -9,6 +9,21 @@ const nextConfig: NextConfig = {
   },
   // 開発中に iPad などの端末から開けるように、LAN と Tailscale のアドレスを許可する（開発サーバーのみ）
   allowedDevOrigins: ['10.*.*.*', '172.*.*.*', '192.168.*.*', '100.*.*.*', '**.ts.net'],
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          // 窓が使う機能だけを、このサイト自身に許可する（マイク・位置情報・全画面・画面の点灯）
+          {
+            key: 'Permissions-Policy',
+            value:
+              'microphone=(self), geolocation=(self), fullscreen=(self), screen-wake-lock=(self)',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

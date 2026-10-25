@@ -14,7 +14,7 @@ describe('syncChannelName', () => {
 
   it('チャンネル名に合言葉をそのまま含めない', () => {
     const name = syncChannelName('ひみつの合言葉');
-    expect(name.startsWith('window-')).toBe(true);
+    expect(name.startsWith('connectwindow-')).toBe(true);
     expect(name).not.toContain('ひみつ');
   });
 });
