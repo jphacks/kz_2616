@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { HaaDetector } from '@/components/HaaDetector/HaaDetector';
+import { SyncStatus } from '@/components/ui/SyncStatus';
 import { SettingsMenu } from '@/components/SettingsMenu/SettingsMenu';
 import { CONFIG } from '@/config';
 import { useCurrentCoordinates } from '@/hooks/useCurrentCoordinates';
 import { useDrawing } from '@/hooks/useDrawing';
 import { useFogCanvas } from '@/hooks/useFogCanvas';
 import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import { syncChannelName } from '@/lib/supabase';
 import { useWeather } from '@/hooks/useWeather';
 import { useWaterDrips } from '@/hooks/useWaterDrips';
 import { useWindowInput } from '@/hooks/useWindowInput';
@@ -24,13 +26,10 @@ import { WeatherOverlay } from './WeatherOverlay';
 import { WindowFrame } from './WindowFrame';
 import styles from './WindowScene.module.css';
 
-/** 接続状態の表示文言 */
-const SYNC_STATUS_TEXT = {
-  disconnected: '同期していません',
-  connecting: '同期に接続しています…',
-  connected: '同期中（相手と共有）',
-  error: '同期に失敗しました',
-} as const;
+interface WindowSceneProps {
+  /** 入室に使った合言葉（同期チャンネルを決める） */
+  roomCode: string;
+}
 
 /**
  * 窓の全体。画面いっぱいに広がり、レイヤーは下から「天気・手書き・曇り」の順に重ねる。
@@ -38,8 +37,9 @@ const SYNC_STATUS_TEXT = {
  * なぞると曇りが拭ける。手書きのインクは透明で、見えるのは拭き取りの跡だけ。
  * 相手の筆跡と息も、同じ窓に反映する（同期は環境変数が設定されているときだけ）。
  */
-export function WindowScene() {
+export function WindowScene({ roomCode }: WindowSceneProps) {
   const connectionStatus = useAppStore((state) => state.connectionStatus);
+  const setRoomCode = useAppStore((state) => state.setRoomCode);
   const weatherOverride = useAppStore((state) => state.weatherOverride);
   const remoteWeather = useAppStore((state) => state.remoteWeather);
   const setRemoteWeather = useAppStore((state) => state.setRemoteWeather);
@@ -65,6 +65,9 @@ export function WindowScene() {
           sunset: weather?.sunset,
         }
       : null);
+
+  // 退室すると入室画面に戻る（同期は窓の表示と一緒に止まる）
+  const handleLeave = () => setRoomCode(null);
 
   // 水滴は曇りが濃い間だけ垂れる。操作ではないので、再曇りの待ち時間は動かさない
   // 窓の大きさ（端末ごとに違うため、送る点は割合にする）
@@ -121,11 +124,14 @@ export function WindowScene() {
     [setRemoteWeather],
   );
 
-  const { sendStroke, sendFog, sendWeather } = useSupabaseSync({
-    onRemoteStroke: handleRemoteStroke,
-    onRemoteFog: handleBreath,
-    onRemoteWeather: handleRemoteWeather,
-  });
+  const { sendStroke, sendFog, sendWeather } = useSupabaseSync(
+    {
+      onRemoteStroke: handleRemoteStroke,
+      onRemoteFog: handleBreath,
+      onRemoteWeather: handleRemoteWeather,
+    },
+    syncChannelName(roomCode),
+  );
 
   // 相手と共有するのは、天気の種類と日の出・日没だけ（座標や気温は送らない）
   const ownCode = weatherCode;
@@ -213,7 +219,10 @@ export function WindowScene() {
       </WindowFrame>
       <div className={styles.controls}>
         <HaaDetector onDetect={handleBreathDetected} />
-        <p className={styles.sync}>{SYNC_STATUS_TEXT[connectionStatus]}</p>
+        <SyncStatus status={connectionStatus} />
+        <button type="button" className={styles.leave} onClick={handleLeave}>
+          退室
+        </button>
       </div>
     </div>
   );

@@ -1,13 +1,9 @@
+/* 窓は明るいガラスなので、文字は OS の表示モードによらず黒いゴシック体にする */
 :root {
   --background: #f4f7f9;
-  --foreground: #1f2933;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #14181c;
-    --foreground: #e4e9ee;
-  }
+  --foreground: #000000;
+  --font-gothic:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif;
 }
 
 html,
@@ -16,4 +12,5 @@ body {
   height: 100%;
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-gothic);
 }

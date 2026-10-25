@@ -1,4 +1,7 @@
 export const CONFIG = {
+  // 2 人をつなぐ合言葉の上限（文字数）
+  PASSPHRASE_MAX_LENGTH: 32,
+
   // 「はー」検出後、自端末のマイクを無効にする時間(ms)
   HAA_MUTE_MS: 3000,
 

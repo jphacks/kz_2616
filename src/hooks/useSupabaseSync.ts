@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-import { getSupabaseClient, SYNC_CHANNEL_NAME } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import {
   type FogEvent,
   parseSyncEvent,
@@ -36,11 +36,14 @@ export interface UseSupabaseSyncResult {
 }
 
 /**
- * 固定のチャンネルで、相手と筆跡・息を送り合う（Supabase Realtime の Broadcast）。
+ * 合言葉から決まったチャンネルで、相手と筆跡・息・天気を送り合う（Supabase Realtime の Broadcast）。
  * 受信したデータは必ず検証してから使う。接続状態は Zustand のストアに入れる。
  * 環境変数が設定されていなければ何もしない（1 台で動く）。
  */
-export function useSupabaseSync(callbacks: SyncCallbacks): UseSupabaseSyncResult {
+export function useSupabaseSync(
+  callbacks: SyncCallbacks,
+  channelName: string,
+): UseSupabaseSyncResult {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const callbacksRef = useRef(callbacks);
 
@@ -58,7 +61,7 @@ export function useSupabaseSync(callbacks: SyncCallbacks): UseSupabaseSyncResult
     setConnectionStatus('connecting');
 
     const channel = supabase
-      .channel(SYNC_CHANNEL_NAME)
+      .channel(channelName)
       .on('broadcast', { event: 'stroke' }, ({ payload }) => {
         const event = parseSyncEvent(payload);
         if (event?.type === 'stroke') {
@@ -94,7 +97,7 @@ export function useSupabaseSync(callbacks: SyncCallbacks): UseSupabaseSyncResult
       void supabase.removeChannel(channel);
       setConnectionStatus('disconnected');
     };
-  }, []);
+  }, [channelName]);
 
   const sendStroke = useCallback((points: Point[]) => {
     const event: StrokeEvent = { type: 'stroke', points, timestamp: Date.now() };
