@@ -1,0 +1,31 @@
+/* 窓は画面全体。温度スライダーは窓の上に重ねて下端に置く */
+.scene {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.controls {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.7);
+}
+
+.sync {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 設定メニューは左上に置く。窓の入力とは重ならない */
+.settings {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+}

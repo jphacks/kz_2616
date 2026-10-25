@@ -1,0 +1,9 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay canvas {
+  display: block;
+}

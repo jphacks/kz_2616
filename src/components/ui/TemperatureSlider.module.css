@@ -1,0 +1,15 @@
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(90vw, 480px);
+  font-size: 14px;
+}
+
+.slider input {
+  width: 100%;
+}
+
+.label {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,19 @@
+/* 窓枠は画面全体に広げ、余白を作らない */
+.frame {
+  --frame-color: #8fa0ab;
+
+  position: absolute;
+  inset: 0;
+  background: var(--frame-color);
+}
+
+.glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: rgb(220 232 240 / 0.6);
+  /* 枠の色を内側へぼかして広げ、中央に向かって透明にする */
+  box-shadow: inset 0 0 8vmin var(--frame-color);
+  /* 指のドラッグでページがスクロールしないようにする */
+  touch-action: none;
+}
