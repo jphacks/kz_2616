@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const CHANNEL_PREFIX = 'window-';
+const CHANNEL_PREFIX = 'connectwindow-';
 
 /**
  * 合言葉を 53 ビットの数値にまとめる（cyrb53）。

@@ -10,6 +10,14 @@ describe('HaaDetector', () => {
     expect(html).toContain('息を聞く（マイクをオン）');
     expect(html).toContain('マイクはオフです');
   });
+
+  it('デバッグ用の結露ボタンは、結露の動きを渡したときだけ出す', () => {
+    const without = renderToStaticMarkup(<HaaDetector />);
+    const withButton = renderToStaticMarkup(<HaaDetector onDebugCondense={() => undefined} />);
+
+    expect(without).not.toContain('結露を発生させる');
+    expect(withButton).toContain('結露を発生させる（デバッグ）');
+  });
 });
 
 describe('getStatusText', () => {

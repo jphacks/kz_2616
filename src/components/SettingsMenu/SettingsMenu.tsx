@@ -22,7 +22,7 @@ const SENSITIVITY_OPTIONS: { value: HaaSensitivity; label: string }[] = [
 ];
 
 /**
- * 左上のプルダウン。デモ用に気象情報とマイクの感度を変える。
+ * 左上のプルダウン。デモ用に、相手の窓に映す気象情報とマイクの感度を変える。
  */
 export function SettingsMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +52,7 @@ export function SettingsMenu() {
       {isOpen && (
         <div className={styles.panel}>
           <label className={styles.field}>
-            <span>気象情報</span>
+            <span>相手の窓の気象情報</span>
             <select value={weatherOverride} onChange={handleWeatherChange}>
               {WEATHER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>

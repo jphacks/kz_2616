@@ -1,6 +1,12 @@
-export const CONFIG = {
+import { selectConfig } from '@/lib/demoConfig';
+
+/** 通常の設定値（本番・発表時の値） */
+const BASE_CONFIG = {
   // 2 人をつなぐ合言葉の上限（文字数）
   PASSPHRASE_MAX_LENGTH: 32,
+
+  // 同じ合言葉で入れる窓の数。これを超えた後から入る窓は満員になる
+  ROOM_MAX_MEMBERS: 2,
 
   // 「はー」検出後、自端末のマイクを無効にする時間(ms)
   HAA_MUTE_MS: 3000,
@@ -36,3 +42,21 @@ export const CONFIG = {
   // 位置情報が取れないときに使う座標(東京)
   FALLBACK_LOCATION: { latitude: 35.68, longitude: 139.69 },
 } as const;
+
+/**
+ * 会場のデモ用の値。ビルド時に NEXT_PUBLIC_DEMO_MODE=1 を付けたときだけ、通常の値の上に重なる。
+ * 曇りが戻るのを待つ時間を短くして、何度でも見せられるようにする。
+ */
+const DEMO_OVERRIDES: Partial<typeof BASE_CONFIG> = {
+  // 息のあと、曇りが透明に戻るまで（通常 60 秒）
+  BREATH_FOG_FADE_OUT_MS: 30 * 1000,
+  // 息のあと、水滴が垂れる時間（通常 20 秒）
+  DRIP_ACTIVE_MS: 15 * 1000,
+};
+
+// NEXT_PUBLIC_ の変数は、ビルド時に値が埋め込まれるように直接書く
+export const CONFIG = selectConfig(
+  BASE_CONFIG,
+  DEMO_OVERRIDES,
+  process.env.NEXT_PUBLIC_DEMO_MODE === '1',
+);

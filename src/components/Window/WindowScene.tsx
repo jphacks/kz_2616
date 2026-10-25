@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { HaaDetector } from '@/components/HaaDetector/HaaDetector';
+import { FullscreenButton } from '@/components/ui/FullscreenButton';
 import { SyncStatus } from '@/components/ui/SyncStatus';
 import { SettingsMenu } from '@/components/SettingsMenu/SettingsMenu';
 import { CONFIG } from '@/config';
@@ -13,6 +14,7 @@ import { useSupabaseSync } from '@/hooks/useSupabaseSync';
 import { syncChannelName } from '@/lib/supabase';
 import { useWeather } from '@/hooks/useWeather';
 import { useWakeLock } from '@/hooks/useWakeLock';
+import { useFullscreen } from '@/hooks/useFullscreen';
 import { useWaterDrips } from '@/hooks/useWaterDrips';
 import { useWindowInput } from '@/hooks/useWindowInput';
 import { toLocalPoints, toNormalizedPoints } from '@/lib/normalizePoints';
@@ -39,6 +41,8 @@ interface WindowSceneProps {
  * 相手の筆跡と息も、同じ窓に反映する（同期は環境変数が設定されているときだけ）。
  */
 export function WindowScene({ roomCode }: WindowSceneProps) {
+  const fullscreen = useFullscreen();
+
   // 窓を開いている間は、画面が消えないようにする（失敗しても窓は動く）
   useWakeLock();
 
@@ -55,19 +59,16 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
 
   const coordinates = useCurrentCoordinates();
   const { weather } = useWeather(coordinates);
-  // デモ用に選んだ気象情報があれば、実際の天気より優先する
-  const weatherCode =
+  // 相手の窓に映す天気。設定で選んだ気象情報があれば、実際の天気より優先する
+  const sentWeatherCode =
     weatherOverride === 'actual' ? weather?.weatherCode : WEATHER_KIND_CODES[weatherOverride];
 
-  // 窓に映すのは相手の天気。相手からまだ受け取っていなければ、自分の天気を映す
+  // 自分の窓に映すのは、相手から受け取った天気。まだ受け取っていなければ、自分の実際の天気
+  // （設定で選んだ気象情報は、相手の窓だけに映す）
   const displayedWeather =
     remoteWeather ??
-    (weatherCode !== undefined
-      ? {
-          weatherCode,
-          sunrise: weather?.sunrise,
-          sunset: weather?.sunset,
-        }
+    (weather
+      ? { weatherCode: weather.weatherCode, sunrise: weather.sunrise, sunset: weather.sunset }
       : null);
 
   // 退室すると入室画面に戻る（同期は窓の表示と一緒に止まる）
@@ -123,6 +124,13 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
     [fog.canvasRef, wipe],
   );
 
+  // 定員を超えて入った窓は、入室画面に戻して理由を出す
+  const setJoinError = useAppStore((state) => state.setJoinError);
+  const handleRoomFull = useCallback(() => {
+    setRoomCode(null);
+    setJoinError('この合言葉は 2 人で使用中です。別の合言葉で入ってください');
+  }, [setRoomCode, setJoinError]);
+
   const handleRemoteWeather = useCallback(
     (weather: SharedWeather) => setRemoteWeather(weather),
     [setRemoteWeather],
@@ -133,12 +141,13 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
       onRemoteStroke: handleRemoteStroke,
       onRemoteFog: handleBreath,
       onRemoteWeather: handleRemoteWeather,
+      onRoomFull: handleRoomFull,
     },
     syncChannelName(roomCode),
   );
 
   // 相手と共有するのは、天気の種類と日の出・日没だけ（座標や気温は送らない）
-  const ownCode = weatherCode;
+  const ownCode = sentWeatherCode;
   const ownSunrise = weather?.sunrise;
   const ownSunset = weather?.sunset;
   useEffect(() => {
@@ -209,6 +218,11 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
     <div className={styles.scene}>
       <div className={styles.settings}>
         <SettingsMenu />
+        <FullscreenButton
+          supported={fullscreen.supported}
+          active={fullscreen.active}
+          onToggle={fullscreen.toggle}
+        />
       </div>
       <WindowFrame glassProps={inputHandlers}>
         {displayedWeather && (
@@ -222,7 +236,7 @@ export function WindowScene({ roomCode }: WindowSceneProps) {
         <FogLayer canvasRef={fog.canvasRef} />
       </WindowFrame>
       <div className={styles.controls}>
-        <HaaDetector onDetect={handleBreathDetected} />
+        <HaaDetector onDetect={handleBreathDetected} onDebugCondense={handleBreathDetected} />
         <SyncStatus status={connectionStatus} />
         <button type="button" className={styles.leave} onClick={handleLeave}>
           退室

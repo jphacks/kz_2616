@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
+import { CONFIG } from '@/config';
 import { getSupabaseClient } from '@/lib/supabase';
+import { isRoomFull } from '@/lib/room';
 import {
   type FogEvent,
   parseSyncEvent,
@@ -24,6 +26,8 @@ export interface SyncCallbacks {
   onRemoteFog: () => void;
   /** 相手の天気を受け取った（検証済み） */
   onRemoteWeather: (weather: SharedWeather) => void;
+  /** 定員を超えて入ったので、この窓は入室できない */
+  onRoomFull: () => void;
 }
 
 export interface UseSupabaseSyncResult {
@@ -60,8 +64,22 @@ export function useSupabaseSync(
     const setConnectionStatus = useAppStore.getState().setConnectionStatus;
     setConnectionStatus('connecting');
 
-    const channel = supabase
-      .channel(channelName)
+    // この窓を区別するキーと、入室の時刻。定員の判定に使う（presence）
+    const presenceKey = crypto.randomUUID();
+    const channel = supabase.channel(channelName, { config: { presence: { key: presenceKey } } });
+    let fullNotified = false;
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState<{ joinedAt: number }>();
+        const members = Object.entries(state).flatMap(([key, metas]) =>
+          metas.map((meta) => ({ key, joinedAt: meta.joinedAt })),
+        );
+        if (!fullNotified && isRoomFull(members, presenceKey, CONFIG.ROOM_MAX_MEMBERS)) {
+          fullNotified = true;
+          callbacksRef.current.onRoomFull();
+        }
+      })
       .on('broadcast', { event: 'stroke' }, ({ payload }) => {
         const event = parseSyncEvent(payload);
         if (event?.type === 'stroke') {
@@ -83,6 +101,8 @@ export function useSupabaseSync(
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
+          // 入室の時刻を知らせる（先に入った窓が優先される）
+          void channel.track({ joinedAt: Date.now() });
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setConnectionStatus('error');
         } else if (status === 'CLOSED') {

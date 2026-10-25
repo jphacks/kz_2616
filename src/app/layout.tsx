@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '窓',
+  title: 'ConnectWindow',
   description: '曇った窓ガラスに、離れた相手と文字を書き合うアプリ',
 };
 

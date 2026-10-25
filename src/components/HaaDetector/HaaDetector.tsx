@@ -6,6 +6,7 @@ import { CONFIG } from '@/config';
 import { useHaaDetection } from '@/hooks/useHaaDetection';
 import { unlockAudio } from '@/lib/audio';
 import { HAA_SENSITIVITY_THRESHOLDS } from '@/lib/haaDetection';
+import { MicIcon, SnowflakeIcon } from '@/components/ui/icons';
 import { useAppStore } from '@/stores/useAppStore';
 
 import styles from './HaaDetector.module.css';
@@ -13,13 +14,15 @@ import styles from './HaaDetector.module.css';
 interface HaaDetectorProps {
   /** 「はー」を検出したときに呼ばれる */
   onDetect?: () => void;
+  /** デバッグ用の結露ボタンを押したときに呼ばれる（息を検出したときと同じ動き） */
+  onDebugCondense?: () => void;
 }
 
 /**
  * マイクで「はー」を聞くスイッチと、その状態表示。
  * 検出のたびに、CONFIG.HAA_MUTE_MS の間マイクの音を無視する。
  */
-export function HaaDetector({ onDetect }: HaaDetectorProps) {
+export function HaaDetector({ onDetect, onDebugCondense }: HaaDetectorProps) {
   const [isActive, setIsActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const sensitivity = useAppStore((state) => state.haaSensitivity);
@@ -56,9 +59,29 @@ export function HaaDetector({ onDetect }: HaaDetectorProps) {
 
   return (
     <div className={styles.detector}>
-      <button type="button" className={styles.button} onClick={handleToggle}>
-        {isActive ? 'マイクを止める' : '息を聞く（マイクをオン）'}
-      </button>
+      <div className={styles.row}>
+        <button
+          type="button"
+          className={`${styles.iconButton} ${isActive ? styles.active : ''}`}
+          onClick={handleToggle}
+          aria-label={isActive ? 'マイクを止める' : '息を聞く（マイクをオン）'}
+          aria-pressed={isActive}
+          title={isActive ? 'マイクを止める' : '息を聞く（マイクをオン）'}
+        >
+          <MicIcon />
+        </button>
+        {onDebugCondense && (
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={onDebugCondense}
+            aria-label="結露を発生させる（デバッグ）"
+            title="結露を発生させる（デバッグ）"
+          >
+            <SnowflakeIcon />
+          </button>
+        )}
+      </div>
       <p className={styles.status} role="status">
         {getStatusText({ isActive, isMuted, isListening, error })}
       </p>

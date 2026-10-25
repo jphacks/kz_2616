@@ -1,0 +1,42 @@
+name: Deploy to Vercel
+
+# main にマージ（push）されたら、テストを通してから本番にデプロイする
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同時に 2 つのデプロイが走らないようにする
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: 型チェック・Lint・単体テスト
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run test
+
+  deploy:
+    name: 本番デプロイ（Vercel）
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # ビルドは Vercel 側で行う（環境変数は Vercel のプロジェクト設定を使う）
+      - run: npx --yes vercel@65 deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}

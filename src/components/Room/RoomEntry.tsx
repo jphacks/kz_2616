@@ -12,6 +12,7 @@ import styles from './RoomEntry.module.css';
 export function RoomEntry() {
   const setRoomCode = useAppStore((state) => state.setRoomCode);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
+  const joinError = useAppStore((state) => state.joinError);
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +30,7 @@ export function RoomEntry() {
   return (
     <main className={styles.page}>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <h1 className={styles.title}>窓</h1>
+        <h1 className={styles.title}>ConnectWindow</h1>
         <p className={styles.description}>相手と同じ合言葉を入力すると、同じ窓に入ります。</p>
         <label className={styles.label} htmlFor="passphrase">
           合言葉
@@ -44,9 +45,9 @@ export function RoomEntry() {
           spellCheck={false}
           onChange={(event) => setInput(event.target.value)}
         />
-        {error && (
+        {(error ?? joinError) && (
           <p role="alert" className={styles.error}>
-            {error}
+            {error ?? joinError}
           </p>
         )}
         <button type="submit" className={styles.button}>
